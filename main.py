@@ -7,7 +7,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--audio_dir", required=True, help="Path to audio folder")
     parser.add_argument("--ext", default="wav", help="Audio extention name")
-    parser.add_argument("--km_model", default="./km_model.pt", help="Path to the Kmeans model")
+    parser.add_argument("--km_model", default="./km_model-1s.pt", help="Path to the Kmeans model")
     args = parser.parse_args()
 
     file_list = []
