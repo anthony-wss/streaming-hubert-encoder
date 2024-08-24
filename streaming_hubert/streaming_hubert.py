@@ -36,7 +36,7 @@ class StreamingHubertEncoder():
             feat: a list of Hubert representations for each file
         """
         feats = []
-        shard_id = 0
+        # shard_id = 0
         for i in tqdm(range(len(audio_list))):
             if type(audio_list[i]) == str:
                 wav, sr = sf.read(audio_list[i])
@@ -61,19 +61,13 @@ class StreamingHubertEncoder():
                     wav_slices = []
                     torch.cuda.empty_cache()
 
-            feats.append(torch.vstack(wav_feat))
+            wav_feat = torch.vstack(wav_feat)
+            feats.append(wav_feat)
 
-        #     if len(feats) >= SHARD_SIZE:
-        #         torch.save({
-        #             "feats": feats[:SHARD_SIZE], "lens": lens[:SHARD_SIZE]
-        #         }, f"km_data_new/yt-data-{shard_id}.pt")
-        #         shard_id += 1
-        #         feats = feats[SHARD_SIZE:]
-        #         lens = lens[SHARD_SIZE:]
-        #
-        # torch.save({
-        #     "feats": feats, "lens": lens
-        # }, f"km_data_new/yt-data-{shard_id}.pt")
+            # torch.save({
+            #     "feats": torch.vstack(wav_feat), "lens": []
+            # }, f"km_data_new/soundon-data-{shard_id}.pt")
+            # shard_id += 1
 
         return feats
 
