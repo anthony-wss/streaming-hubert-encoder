@@ -5,20 +5,29 @@ from streaming_hubert import StreamingHubertEncoder, ApplyKmeans
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    # parser.add_argument("--audio_dir", required=True, help="Path to audio folder")
-    parser.add_argument("--file_list", required=True, help="A text file with audio paths. One for each line.")
+    parser.add_argument("--audio_dir", default=None, help="Path to audio folder")
+    parser.add_argument("--file_list", default=None, help="A text file with audio paths. One for each line.")
     parser.add_argument("--output_dir", required=True, help="Directory to store Hubert features")
     parser.add_argument("--ext", default="wav", help="Audio extention name")
     parser.add_argument("--km_model", default="./km_model.pt", help="Path to the Kmeans model")
     args = parser.parse_args()
 
-    file_list = [l.strip() for l in open(args.file_list, "r").readlines()]
+    if args.audio_dir is not None:
+        file_list = []
+        for file in os.listdir(args.audio_dir):
+            file_list.append(os.path.join(args.audio_dir, file))
+    elif args.file_list is not None:
+        file_list = [l.strip() for l in open(args.file_list, "r").readlines()]
+    else:
+        raise Exception("you should set audio_dir or file_list")
 
-    # Step 1: Get causal hubert hidden feature at lajyer 6
+
     encoder = StreamingHubertEncoder(
         output_dir=args.output_dir,
         batch_size=100
     )
+
+    # Step 1: Get causal hubert hidden feature at layer 6
     feats = encoder.batch_encode(file_list)
     print([f.shape for f in feats])
 

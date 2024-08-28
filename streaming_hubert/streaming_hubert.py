@@ -50,10 +50,9 @@ class StreamingHubertEncoder():
                 assert len(audio_list[i].shape) == 1, "You should use single channel audio"
             else:
                 raise NotImplementedError
-            print("sec:", wav.shape)
             wav_slices = []
             wav_feat = []
-            for i in tqdm(range(HOP_LENGTH, wav.shape[0], HOP_LENGTH)):
+            for i in range(HOP_LENGTH, wav.shape[0], HOP_LENGTH):
                 start_pos = max(i-WIN_LENGTH, 0)
                 wav_slices.append(wav[start_pos:i])
 
@@ -67,7 +66,6 @@ class StreamingHubertEncoder():
                     torch.cuda.empty_cache()
 
             wav_feat = torch.vstack(wav_feat)
-            print(wav_feat.shape)
             # print(wav_feat.shape)
             # feats.append(wav_feat)
 
