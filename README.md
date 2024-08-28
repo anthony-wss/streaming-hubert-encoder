@@ -7,7 +7,7 @@
 - [ ] feat: Support not dumping features with `dump_feature` parameter
 - [ ] test: Add unit test `test.py`
 - [x] feat: `StreamingHubertEncoder` only takes list of path strings as input
-- [ ] fix : ```/work/u3937558/streaming-hubert/streaming_hubert/streaming_hubert.py:98: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).```
+- [x] fix : Fix `UserWarning: To copy construct from a tensor`
 
 ## Install
 

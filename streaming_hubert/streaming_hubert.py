@@ -42,7 +42,6 @@ class StreamingHubertEncoder():
             wav, sr = sf.read(audio_list[i])
             if sr != 16000:
                 wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-            wav = torch.from_numpy(wav)
             
             wav_feat = []
             if self.window_size == -1:
@@ -96,7 +95,7 @@ class StreamingHubertEncoder():
             lens: list of integer, representing the lengths of the features
         """
         is_batch = (len(wavs) > 1)
-        wavs = [torch.tensor(wav, dtype=torch.float32) for wav in wavs]
+        wavs = [torch.from_numpy(wav) for wav in wavs]
         max_len = max(wav.shape[0] for wav in wavs)
         wavs_padded = [F.pad(wav, (0, max_len - wav.shape[0])) for wav in wavs]
         wavs_padded = torch.vstack(wavs_padded).squeeze()
