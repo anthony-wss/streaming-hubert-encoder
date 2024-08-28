@@ -8,15 +8,16 @@ from tqdm import tqdm
 import torch
 import numpy as np
 import librosa
+import os
 
-SHARD_SIZE = 100
 HOP_LENGTH = 1600  # 100ms
-WIN_LENGTH = 16000  # 1s
+WIN_LENGTH = 16000 * 5  # 5s
 
 
 class StreamingHubertEncoder():
-    def __init__(self, batch_size=16, device="cuda"):
+    def __init__(self, output_dir, batch_size=16, device="cuda"):
         model_path = "TencentGameMate/chinese-hubert-base"
+        self.output_dir = output_dir
         self.batch_size = batch_size
         self.device = device
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_path)
@@ -36,8 +37,9 @@ class StreamingHubertEncoder():
             feat: a list of Hubert representations for each file
         """
         feats = []
-        # shard_id = 0
+        shard_id = 0
         for i in tqdm(range(len(audio_list))):
+            audio_id = audio_list[i].strip().split("/")[-1].split(".")[0]
             if type(audio_list[i]) == str:
                 wav, sr = sf.read(audio_list[i])
                 if sr != 16000:
@@ -58,18 +60,22 @@ class StreamingHubertEncoder():
                     batch_feats, batch_lens = self._encode(wav_slices)
                     for bi in range(len(batch_feats)):
                         wav_feat.extend(batch_feats[bi][:batch_lens[bi]][-5:])
+                        # print([l.shape for l  in wav_feat])
+                        # exit()
                     wav_slices = []
                     torch.cuda.empty_cache()
 
             wav_feat = torch.vstack(wav_feat)
-            feats.append(wav_feat)
+            # print(wav_feat.shape)
+            # feats.append(wav_feat)
 
-            # torch.save({
-            #     "feats": torch.vstack(wav_feat), "lens": []
-            # }, f"km_data_new/soundon-data-{shard_id}.pt")
-            # shard_id += 1
+            file_path = os.path.join(self.output_dir, f"{audio_id}.pt")
+            torch.save({
+                "feats": wav_feat
+            }, file_path)
+            shard_id += 1
 
-        return feats
+        return []
 
 
     def encode(self, audio_input):
