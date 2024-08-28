@@ -30,7 +30,7 @@ class StreamingHubertEncoder():
         Encode a list of audio
 
         Parameters:
-            audio_list(list(str) or list(tensor)): list of audio in path or tensor format
+            audio_list(list(str)): list of audio path strings
 
         Returns:
             feat: a list of Hubert representations for each file
@@ -39,16 +39,11 @@ class StreamingHubertEncoder():
         shard_id = 0
         for i in tqdm(range(len(audio_list))):
             audio_id = audio_list[i].strip().split("/")[-1].split(".")[0]
-            if type(audio_list[i]) == str:
-                wav, sr = sf.read(audio_list[i])
-                if sr != 16000:
-                    wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-                wav = torch.from_numpy(wav)
-            elif type(audio_list[i]) == torch.tensor:
-                wav = audio_list[i].squeeze()
-                assert len(audio_list[i].shape) == 1, "You should use single channel audio"
-            else:
-                raise NotImplementedError
+            wav, sr = sf.read(audio_list[i])
+            if sr != 16000:
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            wav = torch.from_numpy(wav)
+            
             wav_slices = []
             wav_feat = []
             for i in range(self.hop_length, wav.shape[0], self.hop_length):
