@@ -10,6 +10,9 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", required=True, help="Directory to store Hubert features")
     parser.add_argument("--ext", default="wav", help="Audio extention name")
     parser.add_argument("--km_model", default="./km_model-1s.pt", help="Path to the Kmeans model")
+    parser.add_argument("--window_sec", type=int, default=1, help="Window size in second, set -1 for inf")
+    parser.add_argument("--hop_ms", type=int, default=100, help="Hop length in millisecond")
+    parser.add_argument("--batch_size", type=int, default=100, help="Number of windows per batch")
     args = parser.parse_args()
 
     if args.audio_dir is not None:
@@ -24,7 +27,9 @@ if __name__ == "__main__":
 
     encoder = StreamingHubertEncoder(
         output_dir=args.output_dir,
-        batch_size=100
+        batch_size=args.batch_size,
+        window_sec=args.window_sec,
+        hop_ms=args.hop_ms
     )
 
     # Step 1: Get causal hubert hidden feature at layer 6

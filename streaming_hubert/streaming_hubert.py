@@ -10,16 +10,15 @@ import numpy as np
 import librosa
 import os
 
-HOP_LENGTH = 1600  # 100ms
-WIN_LENGTH = 16000 * 5  # 5s
-
 
 class StreamingHubertEncoder():
-    def __init__(self, output_dir, batch_size=16, device="cuda"):
+    def __init__(self, output_dir, window_sec, hop_ms, batch_size=16, device="cuda"):
         model_path = "TencentGameMate/chinese-hubert-base"
         self.output_dir = output_dir
         self.batch_size = batch_size
         self.device = device
+        self.window_size = window_sec * 16000
+        self.hop_length = hop_ms * 16
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_path)
         self.model = HubertModel.from_pretrained(model_path)
         self.model = self.model.to(self.device)
@@ -52,11 +51,11 @@ class StreamingHubertEncoder():
                 raise NotImplementedError
             wav_slices = []
             wav_feat = []
-            for i in range(HOP_LENGTH, wav.shape[0], HOP_LENGTH):
-                start_pos = max(i-WIN_LENGTH, 0)
+            for i in range(self.hop_length, wav.shape[0], self.hop_length):
+                start_pos = max(i-self.window_size, 0)
                 wav_slices.append(wav[start_pos:i])
 
-                if len(wav_slices) >= self.batch_size or i+HOP_LENGTH >= wav.shape[0]:
+                if len(wav_slices) >= self.batch_size or i+self.hop_length >= wav.shape[0]:
                     batch_feats, batch_lens = self._encode(wav_slices)
                     for bi in range(len(batch_feats)):
                         wav_feat.extend(batch_feats[bi][:batch_lens[bi]][-5:])
