@@ -1,7 +1,7 @@
 # Streaming HuBert Encoder (Multi-gpu branch)
 
 - [x] feat: support multi-gpu feature extraction
-- [ ] feat: support infinite window size
+- [x] feat: support infinite window size
 - [ ] feat: Add warning if `output_dir` is not empty
 - [x] refactor: Move `HOP_LENGTH`, `WIN_LENGTH`, and `batch_size` to `StreamingHubertEncoder` config
 - [ ] feat: Support not dumping features with `dump_feature` parameter

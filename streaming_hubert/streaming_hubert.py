@@ -17,7 +17,7 @@ class StreamingHubertEncoder():
         self.output_dir = output_dir
         self.batch_size = batch_size
         self.device = device
-        self.window_size = window_sec * 16000
+        self.window_size = -1 if window_sec == -1 else window_sec * 16000
         self.hop_length = hop_ms * 16
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_path)
         self.model = HubertModel.from_pretrained(model_path)
@@ -44,20 +44,27 @@ class StreamingHubertEncoder():
                 wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
             wav = torch.from_numpy(wav)
             
-            wav_slices = []
             wav_feat = []
-            for i in range(self.hop_length, wav.shape[0], self.hop_length):
-                start_pos = max(i-self.window_size, 0)
-                wav_slices.append(wav[start_pos:i])
+            if self.window_size == -1:
+                chunk_size = 16000*300
+                for i in range(0, wav.shape[0], chunk_size):
+                    end_pos = min(i+chunk_size, wav.shape[0])
+                    batch_feats, batch_lens = self._encode([wav[i:end_pos]])
+                    wav_feat.extend(batch_feats[0, :, :])
+            else:
+                wav_slices = []
+                for i in range(self.hop_length, wav.shape[0], self.hop_length):
+                    start_pos = max(i-self.window_size, 0)
+                    wav_slices.append(wav[start_pos:i])
 
-                if len(wav_slices) >= self.batch_size or i+self.hop_length >= wav.shape[0]:
-                    batch_feats, batch_lens = self._encode(wav_slices)
-                    for bi in range(len(batch_feats)):
-                        wav_feat.extend(batch_feats[bi][:batch_lens[bi]][-5:])
-                        # print([l.shape for l  in wav_feat])
-                        # exit()
-                    wav_slices = []
-                    torch.cuda.empty_cache()
+                    if len(wav_slices) >= self.batch_size or i+self.hop_length >= wav.shape[0]:
+                        batch_feats, batch_lens = self._encode(wav_slices)
+                        for bi in range(len(batch_feats)):
+                            wav_feat.extend(batch_feats[bi][:batch_lens[bi]][-5:])
+                            # print([l.shape for l  in wav_feat])
+                            # exit()
+                        wav_slices = []
+                        torch.cuda.empty_cache()
 
             wav_feat = torch.vstack(wav_feat)
             # print(wav_feat.shape)
