@@ -1,4 +1,4 @@
-# Streaming HuBert Encoder (Multi-gpu branch)
+# Streaming HuBert Encoder
 
 - [x] feat: support multi-gpu feature extraction
 - [x] feat: support infinite window size
@@ -21,6 +21,19 @@ pip install .
 
 ## Usage
 
+The audio in `audio_dir` should be in wav format.
+`window_sec` can be 1, 5 or -1.
+
+```bash
+python main.py \
+    --audio_dir /work/u3937558/soundon-asr/audio_10 \
+    --output_dir test_data_dump \
+    --window_sec -1 \
+    --take_mean \
+    --km_model ../discrete-chinese-hubert-base-l6/km_500_inf.pt
+```
+
+## Usage (Multi-gpu)
 
 1. Set parameters in `multi_gpu_extractor.sh`
 
