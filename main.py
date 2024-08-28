@@ -13,6 +13,7 @@ if __name__ == "__main__":
     parser.add_argument("--window_sec", type=int, default=1, help="Window size in second, set -1 for inf")
     parser.add_argument("--hop_ms", type=int, default=100, help="Hop length in millisecond")
     parser.add_argument("--batch_size", type=int, default=100, help="Number of windows per batch")
+    parser.add_argument("--take_mean", action="store_true", help="Use mean downsampling")
     args = parser.parse_args()
 
     if args.audio_dir is not None:
@@ -29,7 +30,8 @@ if __name__ == "__main__":
         output_dir=args.output_dir,
         batch_size=args.batch_size,
         window_sec=args.window_sec,
-        hop_ms=args.hop_ms
+        hop_ms=args.hop_ms,
+        take_mean=args.take_mean
     )
 
     # Step 1: Get causal hubert hidden feature at layer 6

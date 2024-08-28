@@ -12,13 +12,14 @@ import os
 
 
 class StreamingHubertEncoder():
-    def __init__(self, output_dir, window_sec, hop_ms, batch_size=16, device="cuda"):
+    def __init__(self, output_dir, window_sec, hop_ms, batch_size=16, device="cuda", take_mean=False):
         model_path = "TencentGameMate/chinese-hubert-base"
         self.output_dir = output_dir
         self.batch_size = batch_size
         self.device = device
         self.window_size = -1 if window_sec == -1 else window_sec * 16000
         self.hop_length = hop_ms * 16
+        self.take_mean = take_mean
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_path)
         self.model = HubertModel.from_pretrained(model_path)
         self.model = self.model.to(self.device)
@@ -107,6 +108,11 @@ class StreamingHubertEncoder():
         outputs = self.model(input_values, attention_mask=torch.ones(input_values.shape[0]).to(self.device), output_hidden_states=True)
         feats = outputs.hidden_states[6].detach().cpu()
         lens = [(l.shape[0]-80)//320 for l in wavs]
+
+        if self.take_mean:
+            if feats.shape[1] % 2 != 0:
+                feats = torch.nn.functional.pad(feats, (0, 0, 0, 1))
+            return feats.view(feats.shape[0], -1, 2, 768).mean(dim=2), lens
 
         return feats, lens
 
