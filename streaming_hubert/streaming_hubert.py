@@ -1,3 +1,4 @@
+from joblib import dump
 import torch.nn.functional as F
 import soundfile as sf
 from transformers import (
@@ -12,7 +13,7 @@ import os
 
 
 class StreamingHubertEncoder():
-    def __init__(self, output_dir, window_sec, hop_ms, batch_size=16, device="cuda", take_mean=False):
+    def __init__(self, output_dir, window_sec, hop_ms, batch_size=16, device="cuda", take_mean=False, dump_feature=False):
         model_path = "TencentGameMate/chinese-hubert-base"
         self.output_dir = output_dir
         self.batch_size = batch_size
@@ -20,6 +21,7 @@ class StreamingHubertEncoder():
         self.window_size = -1 if window_sec == -1 else window_sec * 16000
         self.hop_length = hop_ms * 16
         self.take_mean = take_mean
+        self.dump_feature = dump_feature
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_path)
         self.model = HubertModel.from_pretrained(model_path)
         self.model = self.model.to(self.device)
@@ -37,7 +39,6 @@ class StreamingHubertEncoder():
             feat: a list of Hubert representations for each file
         """
         feats = []
-        shard_id = 0
         for i in tqdm(range(len(audio_list))):
             audio_id = audio_list[i].strip().split("/")[-1].split(".")[0]
             wav, sr = sf.read(audio_list[i])
@@ -68,15 +69,15 @@ class StreamingHubertEncoder():
 
             wav_feat = torch.vstack(wav_feat)
             # print(wav_feat.shape)
-            # feats.append(wav_feat)
+            if self.dump_feature:
+                file_path = os.path.join(self.output_dir, f"{audio_id}.pt")
+                torch.save({
+                    "feats": wav_feat
+                }, file_path)
+            else:
+                feats.append(wav_feat)
 
-            file_path = os.path.join(self.output_dir, f"{audio_id}.pt")
-            torch.save({
-                "feats": wav_feat
-            }, file_path)
-            shard_id += 1
-
-        return []
+        return feats
 
 
     def encode(self, audio_input):

@@ -4,7 +4,7 @@
 - [x] feat: support infinite window size
 - [ ] feat: Add warning if `output_dir` is not empty
 - [x] refactor: Move `HOP_LENGTH`, `WIN_LENGTH`, and `batch_size` to `StreamingHubertEncoder` config
-- [ ] feat: Support not dumping features with `dump_feature` parameter
+- [x] feat: Support not dumping features with `dump_feature` parameter
 - [ ] test: Add unit test `test.py`
 - [x] feat: `StreamingHubertEncoder` only takes list of path strings as input
 - [x] fix : Fix `UserWarning: To copy construct from a tensor`
