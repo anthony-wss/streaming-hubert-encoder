@@ -28,6 +28,9 @@ if __name__ == "__main__":
     else:
         raise Exception("you should set audio_dir or file_list")
 
+    if args.dump_feature and len(os.listdir(args.output_dir)) > 0:
+        print(f"Warning: the output_dir {args.output_dir} is not empty")
+
 
     encoder = StreamingHubertEncoder(
         output_dir=args.output_dir,
