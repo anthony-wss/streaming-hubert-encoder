@@ -41,24 +41,29 @@ class StreamingHubertEncoder():
         feats = []
         for i in tqdm(range(len(audio_list))):
             audio_id = audio_list[i].strip().split("/")[-1].split(".")[0]
+
+            if self.dump_feature and os.path.isfile(os.path.join(self.output_dir, f"{audio_id}.pt")):
+                continue
+
             wav, sr = sf.read(audio_list[i])
             if sr != 16000:
                 wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
             
             wav_feat = []
             if self.window_size == -1:
-                chunk_size = 16000*300
+                chunk_size = 16000*30
                 for i in range(0, wav.shape[0], chunk_size):
                     end_pos = min(i+chunk_size, wav.shape[0])
-                    batch_feats, batch_lens = self._encode([wav[i:end_pos]])
-                    wav_feat.extend(batch_feats[0, :, :])
+                    if end_pos - i > 500:
+                        batch_feats, batch_lens = self._encode([wav[i:end_pos]])
+                        wav_feat.extend(batch_feats[0, :, :])
             else:
                 wav_slices = []
-                for i in range(self.hop_length, wav.shape[0], self.hop_length):
-                    start_pos = max(i-self.window_size, 0)
-                    wav_slices.append(wav[start_pos:i])
+                for str_pos in range(0, wav.shape[0], self.hop_length):
+                    end_pos = min(str_pos+self.window_size, wav.shape[0])
+                    wav_slices.append(wav[str_pos:end_pos])
 
-                    if len(wav_slices) >= self.batch_size or i+self.hop_length >= wav.shape[0]:
+                    if len(wav_slices) >= self.batch_size or end_pos >= wav.shape[0]:
                         batch_feats, batch_lens = self._encode(wav_slices)
                         for bi in range(len(batch_feats)):
                             wav_feat.extend(batch_feats[bi][:batch_lens[bi]][-5:])
