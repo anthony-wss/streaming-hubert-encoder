@@ -59,11 +59,11 @@ class StreamingHubertEncoder():
                         wav_feat.extend(batch_feats[0, :, :])
             else:
                 wav_slices = []
-                for str_pos in range(0, wav.shape[0], self.hop_length):
-                    end_pos = min(str_pos+self.window_size, wav.shape[0])
-                    wav_slices.append(wav[str_pos:end_pos])
+                for end_pos in range(self.hop_length, wav.shape[0]+1, self.hop_length):
+                    start_pos = max(end_pos-self.window_size, 0)
+                    wav_slices.append(wav[start_pos:end_pos])
 
-                    if len(wav_slices) >= self.batch_size or end_pos >= wav.shape[0]:
+                    if len(wav_slices) >= self.batch_size or end_pos+self.hop_length >= wav.shape[0]:
                         batch_feats, batch_lens = self._encode(wav_slices)
                         for bi in range(len(batch_feats)):
                             wav_feat.extend(batch_feats[bi][:batch_lens[bi]][-5:])
