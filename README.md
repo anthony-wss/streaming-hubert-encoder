@@ -9,6 +9,7 @@
 - [x] feat: `StreamingHubertEncoder` only takes list of path strings as input
 - [x] fix : Fix `UserWarning: To copy construct from a tensor`
 - [x] feat: Support mean downsampling
+- [x] feat: Calculate avg. and std for duplicate tokens
 
 ## Install
 

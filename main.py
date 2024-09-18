@@ -1,6 +1,7 @@
 import os
 from argparse import ArgumentParser
 from streaming_hubert import StreamingHubertEncoder, ApplyKmeans
+from streaming_hubert.utils import cal_duplicate_tokens
 
 
 if __name__ == "__main__":
@@ -43,10 +44,10 @@ if __name__ == "__main__":
 
     # Step 1: Get causal hubert hidden feature at layer 6
     feats = encoder.batch_encode(file_list)
-    print([f.shape for f in feats])
 
     # Step 2: Kmeans quantization
     apply_kmeans = ApplyKmeans(args.km_model, use_gpu=True)
     ssl_units = [apply_kmeans(feat) for feat in feats]
-    print([len(seq) for seq in ssl_units])
 
+    mean, std = cal_duplicate_tokens(ssl_units)
+    print(mean, std)
